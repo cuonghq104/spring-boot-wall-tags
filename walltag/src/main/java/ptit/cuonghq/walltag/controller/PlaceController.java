@@ -30,7 +30,7 @@ public class PlaceController {
 
     /***GET PLACE MANAGED BY PROVIDER LIST***************************************************************************************************/
     @GetMapping("/managed")
-    @ApiOperation(value = "Get managed place list")
+    @ApiOperation(value = "Lấy danh sách địa điểm đăng ký của provider")
     public ResponseEntity<ResponseObjectResult> getList(@RequestHeader(value = "Authorization") int id) {
         ResponseObjectResult result = service.getList(id);
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -38,7 +38,7 @@ public class PlaceController {
 
     /***GET PLACE DETAIL INFORMATION*********************************************************************************************************/
     @GetMapping("/managed/{id}")
-    @ApiOperation(value = "Get place detail information ")
+    @ApiOperation(value = "Lấy thông tin chi tiết về địa điểm ")
     public ResponseEntity<ResponseObjectResult> getPlaceDetailInformation(@RequestHeader(value = "Authorization") int idProvider, @PathVariable("id") int idPlace) {
         ResponseObjectResult result = service.getPlaceDetailInformation(idProvider, idPlace);
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -46,7 +46,7 @@ public class PlaceController {
 
     /***CREATE NEW PLACE ON MANAGED********************************************************************************************************/
     @PostMapping("/managed")
-    @ApiOperation(value = "Create new managed place")
+    @ApiOperation(value = "Đăng ký một địa điểm mới")
     public ResponseEntity<ResponseObjectResult> createNewManagedPlace(@RequestHeader(value = "Authorization") int idProvider, @RequestBody CreateNewPlaceRequestBody requestBody) {
         ResponseObjectResult result = service.createNewManagedPlace(idProvider, requestBody);
         if (result.isSuccess()) {
@@ -58,7 +58,7 @@ public class PlaceController {
 
     /***UPDATE PLACE INFORMATION*************************************************************************************************************/
     @PutMapping("/managed/{id}")
-    @ApiOperation(value = "Update place information")
+    @ApiOperation(value = "Cập nhật thông tin về địa điểm")
     public ResponseEntity<ResponseObjectResult> updatePlaceInformation(@RequestHeader(value = "Authorization") int idProvider, @PathVariable("id") int idPlace, @RequestBody UpdatePlaceRequestBody requestBody) {
         ResponseObjectResult result = service.updatePlaceInformation(idProvider, idPlace, requestBody);
         if (result.isSuccess()) {
@@ -71,7 +71,7 @@ public class PlaceController {
 
     /***GET PLACE WALL TYPE AND POSTER TYPE LIST*********************************************************************************************/
     @GetMapping("/type")
-    @ApiOperation(value = "Get place poster type and wall type list")
+    @ApiOperation(value = "Lấy danh sách thể loại poster và thể loại tường")
     public ResponseEntity<ResponseObjectResult> getPlaceTypeList(@RequestHeader(value = "Authorization") int idProvider) {
         ResponseObjectResult result = service.getTypeList(idProvider);
         if (result.isSuccess()) {
@@ -83,7 +83,7 @@ public class PlaceController {
 
     /***SEARCH FOR PLACES*******************************************************************************************************************/
     @GetMapping("/search")
-    @ApiOperation(value = "Search for places")
+    @ApiOperation(value = "Tìm kiếm địa điểm")
     public ResponseEntity<ResponseObjectResult> searchPlace(@RequestHeader("Authorization")int idUser,
                                                             @RequestParam("lat") double lat,
                                                             @RequestParam("lng") double lng,
@@ -121,7 +121,7 @@ public class PlaceController {
 
     /***GET FAVORITE PLACE OF USER***********************************************************************************************************/
     @GetMapping("/favorite")
-    @ApiOperation(value = "Get list favorite place of customer")
+    @ApiOperation(value = "Lấy danh sách các địa điểm yêu thích của customer")
     private ResponseEntity<ResponseObjectResult> getFavoritePlaces(@RequestHeader("Authorization") int idCustomer) {
         User user = authService.checkUser(idCustomer);
         if (user != null && user.getRole().contains("customer")) {
@@ -133,9 +133,43 @@ public class PlaceController {
 
     }
 
+    /***ADD NEW PLACE TO FAVORITE LIST**************************************************************************************************/
+    @PutMapping("/favorite")
+    @ApiOperation(value = "Thêm địa điểm vào danh sách yêu thích")
+    private ResponseEntity<ResponseObjectResult> addNewFavoritePlace(@RequestHeader("Authorization") int idCustomer, @RequestParam("id_place") int idPlace) {
+        User user = authService.checkUser(idCustomer);
+        if (user != null && user.getRole().contains("customer")) {
+            ResponseObjectResult result = service.addPlaceToFavoriteList(user, idPlace);
+            if (result.isSuccess()) {
+                return new ResponseEntity<>(result, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    /***REMOVE PLACE FROM FAVORITE LIST******************************************************************************************************/
+    @DeleteMapping("/favorite")
+    @ApiOperation(value = "Xóa địa điểm khỏi danh sách yêu thích")
+    private ResponseEntity<ResponseObjectResult> removePlaceFromFavoriteList(@RequestHeader("Authorization") int idCustomer, @RequestParam("id_place") int idPlace) {
+        User user = authService.checkUser(idCustomer);
+        if (user != null && user.getRole().contains("customer")) {
+            ResponseObjectResult result = service.removePlaceFromFavoriteList(user, idPlace);
+            if (result.isSuccess()) {
+                return new ResponseEntity<>(result, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     /****************************************************************************************************************************************/
     @GetMapping
-    @ApiOperation(value = "Get place by its categories")
+    @ApiOperation(value = "Lấy danh sách địa điểm theo các tiêu chí")
     private ResponseEntity<ResponseObjectResult> getPlaceByCategory(@RequestHeader("Authorization") int idCustomer, @RequestParam("category") String category) {
         User user = authService.checkUser(idCustomer);
         if (user != null && user.getRole().contains("customer")) {

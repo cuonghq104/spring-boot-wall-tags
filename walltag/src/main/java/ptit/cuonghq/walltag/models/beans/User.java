@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "tbl_user")
@@ -49,6 +51,10 @@ public class User {
 
     @Column(name = "role")
     private String role;
+
+    @ManyToMany(cascade = {CascadeType.ALL})
+    @JoinTable(name = "tbl_favorite_place", joinColumns = {@JoinColumn(name = "id_customer")}, inverseJoinColumns = {@JoinColumn(name = "id_place")})
+    private Set<Place> favoritePlaces = new HashSet<>();
 
     public int getId() {
         return id;
@@ -150,6 +156,16 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+
+    @JsonIgnore
+    public Set<Place> getFavoritePlaces() {
+        return favoritePlaces;
+    }
+
+    public void setFavoritePlaces(Set<Place> favoritePlaces) {
+        this.favoritePlaces = favoritePlaces;
     }
 
     @Override

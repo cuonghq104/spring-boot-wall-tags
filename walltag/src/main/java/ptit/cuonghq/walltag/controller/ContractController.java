@@ -5,6 +5,7 @@ import ptit.cuonghq.walltag.models.beans.Contract;
 import ptit.cuonghq.walltag.models.beans.Place;
 import ptit.cuonghq.walltag.models.beans.User;
 import ptit.cuonghq.walltag.models.requestmodels.CreateNewContractRB;
+import ptit.cuonghq.walltag.models.responsemodels.ContractByPlaceResponseModel;
 import ptit.cuonghq.walltag.services.ContractService;
 import ptit.cuonghq.walltag.services.PlaceService;
 import ptit.cuonghq.walltag.services.ProviderService;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Api(value = "contract", description = "Api for both customer and provider in contract section", produces = "application/json", tags = {"Contract"})
@@ -106,4 +109,22 @@ public class ContractController {
             return new ResponseEntity<>(new ResponseObjectResult(true, 200, "Success", contract), HttpStatus.OK);
         }
     }
+
+    @GetMapping("/place")
+    @ApiOperation(value = "Lấy danh sách các hợp đồng hiện tại của địa điểm")
+    private ResponseEntity<ResponseObjectResult> getContractByPlace(@RequestParam("id_place") int idPlace, @RequestHeader("Authorization") int idCustomer) {
+        User user = authService.checkUser(idCustomer);
+        if (user == null) {
+            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+        }
+
+        ResponseObjectResult result = contractService.getContractByPlace(idPlace);
+        if (result.isSuccess()) {
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
 }

@@ -215,6 +215,47 @@ public class PlaceService {
         return new ResponseObjectResult(true, 200, ((places == null) ? 0 : places.size()) + "results", places);
     }
 
+    public ResponseObjectResult addPlaceToFavoriteList(User user, int idPlace) {
+        Set<Place> places = user.getFavoritePlaces();
+        Place place = repository.findById(idPlace).orElse(null);
+        if (place == null) {
+            return new ResponseObjectResult(false, 400, "ID place not exist", null);
+        } else {
+
+            if (places.contains(place)) {
+                return new ResponseObjectResult(false, 400, "This place with id " + idPlace + " is already exist in favorite list", null);
+
+            } else {
+                places.add(place);
+                user.setFavoritePlaces(places);
+                providerRepository.save(user);
+                return new ResponseObjectResult(true, 201, "Success", null);
+            }
+
+        }
+    }
+
+
+    public ResponseObjectResult removePlaceFromFavoriteList(User user, int idPlace) {
+        Set<Place> places = user.getFavoritePlaces();
+        Place place = repository.findById(idPlace).orElse(null);
+        if (place == null) {
+            return new ResponseObjectResult(false, 400, "ID place not exist", null);
+        } else {
+
+            if (!places.contains(place)) {
+                return new ResponseObjectResult(false, 400, "This place with id " + idPlace + " have not been exist in favorite list", null);
+
+            } else {
+                places.remove(place);
+                user.setFavoritePlaces(places);
+                providerRepository.save(user);
+                return new ResponseObjectResult(true, 201, "Success", null);
+            }
+
+        }
+    }
+
     public ResponseObjectResult getLastestPlace() {
         List<Place> places = repository.getNewCreatePlace();
         return new ResponseObjectResult(true, 200, ((places == null) ? 0 : places.size()) + " results", places);
