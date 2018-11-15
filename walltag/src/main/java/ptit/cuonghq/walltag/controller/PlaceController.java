@@ -175,7 +175,7 @@ public class PlaceController {
         if (user != null && user.getRole().contains("customer")) {
             switch (category) {
                 case "latest": {
-                    ResponseObjectResult result = service.getLastestPlace();
+                    ResponseObjectResult result = service.getLatestPlace();
                     return new ResponseEntity<>(result, HttpStatus.OK);
                 }
                 default:

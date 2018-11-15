@@ -1,6 +1,11 @@
 package ptit.cuonghq.walltag.models.responsemodels;
 
 import ptit.cuonghq.walltag.models.CurrencyModel;
+import ptit.cuonghq.walltag.models.beans.PosterType;
+import ptit.cuonghq.walltag.models.beans.WallType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlaceSearch {
 
@@ -22,9 +27,9 @@ public class PlaceSearch {
 
     private long price;
 
-    private String wallType;
+    private List<WallType> wallType;
 
-    private String posterType;
+    private List<PosterType> posterType;
 
     private String status;
 
@@ -40,10 +45,33 @@ public class PlaceSearch {
         this.width = width;
         this.height = height;
         this.price = price;
-        this.wallType = wallType;
-        this.posterType = posterType;
+//        this.wallType = wallType;
+//        this.posterType = posterType;
         this.status = status;
         this.daysTilAvailable = daysTilAvailable;
+
+        this.wallType = new ArrayList<>();
+        this.posterType = new ArrayList<>();
+
+        String[] wallTypeArray = wallType.split(";");
+        for (String string : wallTypeArray) {
+            WallType wt = new WallType();
+            String[] wallTypeAttribute = string.split("&");
+            wt.setId(Integer.parseInt(wallTypeAttribute[0]));
+            wt.setType(wallTypeAttribute[1]);
+
+            this.wallType.add(wt);
+        }
+
+        String[] posterTypeArray = posterType.split(";");
+        for (String string : posterTypeArray) {
+            PosterType pt = new PosterType();
+            String[] posterTypeAttrs = string.split("&");
+            pt.setId(Integer.parseInt(posterTypeAttrs[0]));
+            pt.setType(posterTypeAttrs[1]);
+
+            this.posterType.add(pt);
+        }
     }
 
     public int getId() {
@@ -118,20 +146,36 @@ public class PlaceSearch {
         this.price = price;
     }
 
-    public String getWallType() {
+    public List<WallType> getWallType() {
         return wallType;
     }
 
     public void setWallType(String wallType) {
-        this.wallType = wallType;
+        String[] wallTypeArray = wallType.split(";");
+        for (String string : wallTypeArray) {
+            WallType wt = new WallType();
+            String[] wallTypeAttribute = string.split("&");
+            wt.setId(Integer.parseInt(wallTypeAttribute[0]));
+            wt.setType(wallTypeAttribute[1]);
+
+            this.wallType.add(wt);
+        }
     }
 
-    public String getPosterType() {
+    public List<PosterType> getPosterType() {
         return posterType;
     }
 
     public void setPosterType(String posterType) {
-        this.posterType = posterType;
+        String[] posterTypeArray = posterType.split(";");
+        for (String string : posterTypeArray) {
+            PosterType pt = new PosterType();
+            String[] posterTypeAttrs = string.split("&");
+            pt.setId(Integer.parseInt(posterTypeAttrs[0]));
+            pt.setType(posterTypeAttrs[1]);
+
+            this.posterType.add(pt);
+        }
     }
 
     public String getStatus() {

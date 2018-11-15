@@ -256,7 +256,7 @@ public class PlaceService {
         }
     }
 
-    public ResponseObjectResult getLastestPlace() {
+    public ResponseObjectResult getLatestPlace() {
         List<Place> places = repository.getNewCreatePlace();
         return new ResponseObjectResult(true, 200, ((places == null) ? 0 : places.size()) + " results", places);
     }
