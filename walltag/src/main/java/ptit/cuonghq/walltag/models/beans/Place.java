@@ -3,7 +3,7 @@ package ptit.cuonghq.walltag.models.beans;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import ptit.cuonghq.walltag.models.CurrencyModel;
+import ptit.cuonghq.walltag.models.commons.CurrencyModel;
 import ptit.cuonghq.walltag.models.responsemodels.PlaceSearch;
 import ptit.cuonghq.walltag.models.responsemodels.PlaceSummary;
 
@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @SqlResultSetMappings({
@@ -123,6 +124,9 @@ public class Place implements Serializable {
     @Column(name = "date_created")
     private Timestamp dateCreated;
 
+    @Transient
+    private List<Image> additionalImages;
+
     public int getId() {
         return id;
     }
@@ -232,11 +236,19 @@ public class Place implements Serializable {
         this.user = user;
     }
 
-    public double getConstructionPrice() {
+    public long getConstructionPrice() {
         return constructionPrice;
     }
 
     public void setConstructionPrice(long constructionPrice) {
         this.constructionPrice = constructionPrice;
+    }
+
+    public List<Image> getAdditionalImages() {
+        return additionalImages;
+    }
+
+    public void setAdditionalImages(List<Image> additionalImages) {
+        this.additionalImages = additionalImages;
     }
 }

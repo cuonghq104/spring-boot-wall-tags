@@ -1,6 +1,7 @@
 package ptit.cuonghq.walltag.controller;
 
-import ptit.cuonghq.walltag.models.ResponseObjectResult;
+import ptit.cuonghq.walltag.models.commons.ResponseFactory;
+import ptit.cuonghq.walltag.models.commons.ResponseObjectResult;
 import ptit.cuonghq.walltag.models.beans.User;
 import ptit.cuonghq.walltag.models.requestmodels.CreateNewPlaceRequestBody;
 import ptit.cuonghq.walltag.models.requestmodels.SearchRequestModel;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ptit.cuonghq.walltag.utils.Const;
 
 import java.util.Optional;
 
@@ -29,60 +31,42 @@ public class PlaceController {
     private ProviderService authService;
 
     /***GET PLACE MANAGED BY PROVIDER LIST***************************************************************************************************/
-    @GetMapping("/managed")
+    @GetMapping(Const.Path.Place.MANAGED)
     @ApiOperation(value = "Lấy danh sách địa điểm đăng ký của provider")
     public ResponseEntity<ResponseObjectResult> getList(@RequestHeader(value = "Authorization") int id) {
-        ResponseObjectResult result = service.getList(id);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return service.getList(id);
     }
 
     /***GET PLACE DETAIL INFORMATION*********************************************************************************************************/
-    @GetMapping("/managed/{id}")
+    @GetMapping(Const.Path.Place.DETAIL)
     @ApiOperation(value = "Lấy thông tin chi tiết về địa điểm ")
     public ResponseEntity<ResponseObjectResult> getPlaceDetailInformation(@RequestHeader(value = "Authorization") int idProvider, @PathVariable("id") int idPlace) {
-        ResponseObjectResult result = service.getPlaceDetailInformation(idProvider, idPlace);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return service.getPlaceDetailInformation(idProvider, idPlace);
     }
 
     /***CREATE NEW PLACE ON MANAGED********************************************************************************************************/
-    @PostMapping("/managed")
+    @PostMapping(Const.Path.Place.MANAGED)
     @ApiOperation(value = "Đăng ký một địa điểm mới")
     public ResponseEntity<ResponseObjectResult> createNewManagedPlace(@RequestHeader(value = "Authorization") int idProvider, @RequestBody CreateNewPlaceRequestBody requestBody) {
-        ResponseObjectResult result = service.createNewManagedPlace(idProvider, requestBody);
-        if (result.isSuccess()) {
-            return new ResponseEntity<>(result, HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-        }
+        return service.createNewManagedPlace(idProvider, requestBody);
     }
 
     /***UPDATE PLACE INFORMATION*************************************************************************************************************/
-    @PutMapping("/managed/{id}")
+    @PutMapping(Const.Path.Place.DETAIL)
     @ApiOperation(value = "Cập nhật thông tin về địa điểm")
     public ResponseEntity<ResponseObjectResult> updatePlaceInformation(@RequestHeader(value = "Authorization") int idProvider, @PathVariable("id") int idPlace, @RequestBody UpdatePlaceRequestBody requestBody) {
-        ResponseObjectResult result = service.updatePlaceInformation(idProvider, idPlace, requestBody);
-        if (result.isSuccess()) {
-            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-        } else {
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-
+        return service.updatePlaceInformation(idProvider, idPlace, requestBody);
     }
 
     /***GET PLACE WALL TYPE AND POSTER TYPE LIST*********************************************************************************************/
-    @GetMapping("/type")
+    @GetMapping(Const.Path.Place.TYPE)
     @ApiOperation(value = "Lấy danh sách thể loại poster và thể loại tường")
     public ResponseEntity<ResponseObjectResult> getPlaceTypeList(@RequestHeader(value = "Authorization") int idProvider) {
-        ResponseObjectResult result = service.getTypeList(idProvider);
-        if (result.isSuccess()) {
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(result, HttpStatus.UNAUTHORIZED);
-        }
+       return service.getTypeList(idProvider);
     }
 
     /***SEARCH FOR PLACES*******************************************************************************************************************/
-    @GetMapping("/search")
+    @GetMapping(Const.Path.Place.SEARCH)
     @ApiOperation(value = "Tìm kiếm địa điểm")
     public ResponseEntity<ResponseObjectResult> searchPlace(@RequestHeader("Authorization")int idUser,
                                                             @RequestParam("lat") double lat,
@@ -109,26 +93,18 @@ public class PlaceController {
         requestModel.setIdPoster(idPoster);
         requestModel.setIdWall(idWall);
 
-        ResponseObjectResult result = service.searchPlace(idUser, requestModel);
-        if (result.getCode() == 401) {
-            return new ResponseEntity<>(result, HttpStatus.UNAUTHORIZED);
-        } else if (result.getCode() == 200){
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-        }
+        return service.searchPlace(idUser, requestModel);
     }
 
     /***GET FAVORITE PLACE OF USER***********************************************************************************************************/
     @GetMapping("/favorite")
     @ApiOperation(value = "Lấy danh sách các địa điểm yêu thích của customer")
     private ResponseEntity<ResponseObjectResult> getFavoritePlaces(@RequestHeader("Authorization") int idCustomer) {
-        User user = authService.checkUser(idCustomer);
-        if (user != null && user.getRole().contains("customer")) {
-            ResponseObjectResult result = service.getFavoritePlace(idCustomer);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+        User user = authService.checkCustomer(idCustomer);
+        if (user != null) {
+            return service.getFavoritePlace(idCustomer);
         } else {
-            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+            return ResponseFactory.authorizationError();
         }
 
     }
@@ -137,16 +113,11 @@ public class PlaceController {
     @PutMapping("/favorite")
     @ApiOperation(value = "Thêm địa điểm vào danh sách yêu thích")
     private ResponseEntity<ResponseObjectResult> addNewFavoritePlace(@RequestHeader("Authorization") int idCustomer, @RequestParam("id_place") int idPlace) {
-        User user = authService.checkUser(idCustomer);
-        if (user != null && user.getRole().contains("customer")) {
-            ResponseObjectResult result = service.addPlaceToFavoriteList(user, idPlace);
-            if (result.isSuccess()) {
-                return new ResponseEntity<>(result, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-            }
+        User user = authService.checkCustomer(idCustomer);
+        if (user != null) {
+            return service.addPlaceToFavoriteList(user, idPlace);
         } else {
-            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+            return ResponseFactory.authorizationError();
         }
     }
 
@@ -154,16 +125,11 @@ public class PlaceController {
     @DeleteMapping("/favorite")
     @ApiOperation(value = "Xóa địa điểm khỏi danh sách yêu thích")
     private ResponseEntity<ResponseObjectResult> removePlaceFromFavoriteList(@RequestHeader("Authorization") int idCustomer, @RequestParam("id_place") int idPlace) {
-        User user = authService.checkUser(idCustomer);
-        if (user != null && user.getRole().contains("customer")) {
-            ResponseObjectResult result = service.removePlaceFromFavoriteList(user, idPlace);
-            if (result.isSuccess()) {
-                return new ResponseEntity<>(result, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-            }
+        User user = authService.checkCustomer(idCustomer);
+        if (user != null) {
+            return service.removePlaceFromFavoriteList(user, idPlace);
         } else {
-            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+            return ResponseFactory.authorizationError();
         }
     }
 
@@ -171,19 +137,17 @@ public class PlaceController {
     @GetMapping
     @ApiOperation(value = "Lấy danh sách địa điểm theo các tiêu chí")
     private ResponseEntity<ResponseObjectResult> getPlaceByCategory(@RequestHeader("Authorization") int idCustomer, @RequestParam("category") String category) {
-        User user = authService.checkUser(idCustomer);
-        if (user != null && user.getRole().contains("customer")) {
+        User user = authService.checkCustomer(idCustomer);
+        if (user != null) {
             switch (category) {
                 case "latest": {
-                    ResponseObjectResult result = service.getLatestPlace();
-                    return new ResponseEntity<>(result, HttpStatus.OK);
+                    return service.getLatestPlace();
                 }
                 default:
-                    return new ResponseEntity<>(new ResponseObjectResult(false, 400, "Category is not valid", null), HttpStatus.BAD_REQUEST);
-
+                    return ResponseFactory.badRequest("Category is not valid");
             }
         } else {
-            return new ResponseEntity<>(new ResponseObjectResult(false, 401, "Authorization Error", null), HttpStatus.UNAUTHORIZED);
+            return ResponseFactory.authorizationError();
         }
     }
 }

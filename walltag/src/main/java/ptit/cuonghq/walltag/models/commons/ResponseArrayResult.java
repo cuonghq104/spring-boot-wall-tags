@@ -1,6 +1,6 @@
-package ptit.cuonghq.walltag.models;
+package ptit.cuonghq.walltag.models.commons;
 
-public class ResponseObjectResult {
+public class ResponseArrayResult {
 
     private boolean success;
 
@@ -8,9 +8,9 @@ public class ResponseObjectResult {
 
     private String message;
 
-    private Object data;
+    private Object[] data;
 
-    public ResponseObjectResult(boolean success, int code, String message, Object data) {
+    public ResponseArrayResult(boolean success, int code, String message, Object[] data) {
         this.success = success;
         this.code = code;
         this.message = message;
@@ -41,11 +41,11 @@ public class ResponseObjectResult {
         this.message = message;
     }
 
-    public Object getData() {
+    public Object[] getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(Object[] data) {
         this.data = data;
     }
 }

@@ -1,6 +1,6 @@
 package ptit.cuonghq.walltag.models.responsemodels;
 
-import ptit.cuonghq.walltag.models.CurrencyModel;
+import ptit.cuonghq.walltag.models.commons.CurrencyModel;
 import ptit.cuonghq.walltag.models.beans.PosterType;
 import ptit.cuonghq.walltag.models.beans.WallType;
 
@@ -45,8 +45,6 @@ public class PlaceSearch {
         this.width = width;
         this.height = height;
         this.price = price;
-//        this.wallType = wallType;
-//        this.posterType = posterType;
         this.status = status;
         this.daysTilAvailable = daysTilAvailable;
 

@@ -1,7 +1,8 @@
 package ptit.cuonghq.walltag.models.beans;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ptit.cuonghq.walltag.models.CurrencyModel;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import ptit.cuonghq.walltag.models.commons.CurrencyModel;
 import ptit.cuonghq.walltag.models.responsemodels.ContractByPlaceResponseModel;
 import ptit.cuonghq.walltag.models.responsemodels.ContractSummary;
 import org.joda.time.LocalDate;
@@ -33,7 +34,7 @@ import java.text.SimpleDateFormat;
                 }
         ),
 //        public ContractByPlaceResponseModel(int id, int idCustomer, Date dateStart, Date dateEnd, String posterUrl, String note, String status, int constructionPrice, int rentingPrice, String customerFirstName, String customerLastName, String customerEmail, String customerPhone, String customerImageUrl) {
-@SqlResultSetMapping(
+        @SqlResultSetMapping(
                 name = "ContractByPlaceResult",
                 classes = {
                         @ConstructorResult(
@@ -56,8 +57,20 @@ import java.text.SimpleDateFormat;
                                 }
                         )
                 }
+        ),
+        @SqlResultSetMapping(
+                name = "PlaceOccupiedResult",
+                classes = {
+                        @ConstructorResult(
+                                targetClass = String.class,
+                                columns = {
+                                        @ColumnResult(name = "taken", type = String.class)
+                                }
+                        )
+                }
         )
 })
+
 @NamedNativeQueries({
         @NamedNativeQuery(name = "Contract.getWaitingContracts",
                 query = "CALL get_waiting_contract(:id_provider)",
@@ -65,7 +78,23 @@ import java.text.SimpleDateFormat;
 
         @NamedNativeQuery(name = "Contract.getContractByPlaceId",
                 query = "CALL get_contract_by_place(:id_place)",
-                resultSetMapping = "ContractByPlaceResult")
+                resultSetMapping = "ContractByPlaceResult"),
+
+        @NamedNativeQuery(name = "Contract.checkDateOccupied",
+                query = "SELECT COUNT(id) AS taken\n" +
+                        "FROM (\n" +
+                        "\tSELECT * FROM tbl_contract\n" +
+                        "\tWHERE id_place = :id_place\n" +
+                        "\tAND (status <> 'waiting' AND status <> 'finish')\n" +
+                        "\tAND \n" +
+                        "\t((date_start < :start_date AND date_end > :start_date)\n" +
+                        "\tOR \n" +
+                        "\t(date_start < :end_date AND date_end > :end_date)\n" +
+                        "\tOR\n" +
+                        "\t(date_start > :start_date AND date_end < :end_date))\n" +
+                        ") AS X\n" +
+                        "GROUP BY X.id",
+                resultSetMapping = "PlaceOccupiedResult")
 })
 @Entity
 @Table(name = "tbl_contract")
@@ -104,6 +133,14 @@ public class Contract {
 
     @Column(name = "renting_price")
     private long rentingPrice;
+
+    @Column(name = "reject_reason")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String rejectReason;
+
+    @Column(name = "ready_image_url")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String readyImageUrl;
 
     @Transient
     private int monthRented;
@@ -155,6 +192,18 @@ public class Contract {
     public String getDateEnd() {
         SimpleDateFormat sdf1 = new SimpleDateFormat("dd-MM-yyyy");
         return sdf1.format(dateEnd);
+    }
+
+    @JsonIgnore
+    public String getDateEndSqlFormat() {
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf1.format(dateEnd);
+    }
+
+    @JsonIgnore
+    public String getDateStartSqlFormat() {
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf1.format(dateStart);
     }
 
     @JsonIgnore
@@ -242,6 +291,22 @@ public class Contract {
 
     public String getPercentage() {
         return percentage + "%";
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
+    }
+
+    public String getReadyImageUrl() {
+        return readyImageUrl;
+    }
+
+    public void setReadyImageUrl(String readyImageUrl) {
+        this.readyImageUrl = readyImageUrl;
     }
 }
 

@@ -1,11 +1,10 @@
 package ptit.cuonghq.walltag.services;
 
-import ptit.cuonghq.walltag.models.ResponseObjectResult;
+import org.springframework.http.ResponseEntity;
+import ptit.cuonghq.walltag.models.commons.ResponseFactory;
+import ptit.cuonghq.walltag.models.commons.ResponseObjectResult;
 import ptit.cuonghq.walltag.models.beans.*;
-import ptit.cuonghq.walltag.models.repositories.PlaceRepository;
-import ptit.cuonghq.walltag.models.repositories.PosterTypeRepository;
-import ptit.cuonghq.walltag.models.repositories.ProviderRepository;
-import ptit.cuonghq.walltag.models.repositories.WallTypeRepository;
+import ptit.cuonghq.walltag.models.repositories.*;
 import ptit.cuonghq.walltag.models.requestmodels.CreateNewPlaceRequestBody;
 import ptit.cuonghq.walltag.models.requestmodels.SearchRequestModel;
 import ptit.cuonghq.walltag.models.requestmodels.UpdatePlaceRequestBody;
@@ -14,12 +13,13 @@ import ptit.cuonghq.walltag.models.responsemodels.PlaceSummary;
 import ptit.cuonghq.walltag.models.responsemodels.TypeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ptit.cuonghq.walltag.services.serviceinterface.PlaceServiceInterface;
 
 import java.sql.Timestamp;
 import java.util.*;
 
 @Service
-public class PlaceService {
+public class PlaceService implements PlaceServiceInterface {
 
     @Autowired
     PlaceRepository repository;
@@ -33,6 +33,9 @@ public class PlaceService {
     @Autowired
     PosterTypeRepository posterTypeRepository;
 
+    @Autowired
+    ImageRepository imageRepository;
+
     public User checkUser(int idUser) {
         Optional<User> optionalUser = providerRepository.findById(idUser);
         return optionalUser.orElse(null);
@@ -42,32 +45,36 @@ public class PlaceService {
         Optional<Place> optionalPlace = repository.findById(idPlace);
         return optionalPlace.orElse(null);
     }
-    public ResponseObjectResult getTypeList(int idProvider) {
+
+    @Override
+    public ResponseEntity<ResponseObjectResult> getTypeList(int idProvider) {
         Optional<User> optionalProvider = providerRepository.findById(idProvider);
         if (optionalProvider.isPresent()) {
             List<WallType> wallTypes = wallTypeRepository.findAll();
             List<PosterType> posterTypes = posterTypeRepository.findAll();
 
             TypeResponse response = new TypeResponse(wallTypes, posterTypes);
-            return new ResponseObjectResult(true, 200, "Success", response);
+            return ResponseFactory.ok("Success", response);
 
         } else {
-            return new ResponseObjectResult(false, 401, "User doesn't exist", null);
+            return ResponseFactory.authorizationError();
         }
     }
 
-    public ResponseObjectResult getList(int idProvider) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> getList(int idProvider) {
         Optional<User> optionalProvider = providerRepository.findById(idProvider);
         if (optionalProvider.isPresent()) {
             User user = optionalProvider.get();
             List<PlaceSummary> places = repository.findPlaceByProviderId(user.getId());
-            return new ResponseObjectResult(true, 200, "OK", places);
+            return ResponseFactory.ok("OK", places);
         } else {
-            return new ResponseObjectResult(false, 401, "User doesn't exist", null);
+            return ResponseFactory.authorizationError();
         }
     }
 
-    public ResponseObjectResult updatePlaceInformation(int idProvider, int idPlace, UpdatePlaceRequestBody requestBody) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> updatePlaceInformation(int idProvider, int idPlace, UpdatePlaceRequestBody requestBody) {
         Optional<User> optionalProvider = providerRepository.findById(idProvider);
         if (optionalProvider.isPresent()) {
 
@@ -78,39 +85,38 @@ public class PlaceService {
                 Place place = optionalPlace.get();
 
                 if (user.getId() != place.getUser().getId()) {
-                    return new ResponseObjectResult(false, 401, "Unauthorised", null);
+                    return ResponseFactory.authorizationError();
                 }
 
                 Optional<WallType> optionalWallType = wallTypeRepository.findById(requestBody.getIdWallType());
                 Optional<PosterType> optionalPosterType = posterTypeRepository.findById(requestBody.getIdPosterType());
 
                 if (!optionalWallType.isPresent()) {
-                    return new ResponseObjectResult(false, 400, "Id wall type not true", null);
+                    return ResponseFactory.badRequest("Id wall type not true");
                 }
 
                 if (!optionalPosterType.isPresent()) {
-                    return new ResponseObjectResult(false, 400, "Id poster type not true", null);
+                    return ResponseFactory.badRequest("Id poster type not true");
                 }
 
-//                place.setPosterType(optionalPosterType.get());
-//                place.setWallType(optionalWallType.get());
                 place.setPrice(requestBody.getPrice());
                 place.setDescription(requestBody.getDescription());
                 place.setAddress(requestBody.getAddress());
                 place.setImageUrl(requestBody.getImageUrl());
 
                 Place savedPlace = repository.save(place);
-                return new ResponseObjectResult(true, 200, "Place information update", savedPlace);
+                return ResponseFactory.ok("Place information update", savedPlace);
 
             } else {
-                return new ResponseObjectResult(false, 400, "Place doesn't exist", null);
+                return ResponseFactory.badRequest("Place doesn't exist");
             }
         } else {
-            return new ResponseObjectResult(false, 401, "User doesn't exist", null);
+            return ResponseFactory.authorizationError();
         }
     }
 
-    public ResponseObjectResult createNewManagedPlace(int idProvider, CreateNewPlaceRequestBody requestBody) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> createNewManagedPlace(int idProvider, CreateNewPlaceRequestBody requestBody) {
         Optional<User> optionalProvider = providerRepository.findById(idProvider);
         if (optionalProvider.isPresent()) {
             User user = optionalProvider.get();
@@ -125,7 +131,7 @@ public class PlaceService {
                         wallTypeSet.add(wt);
                     }
                 } catch (NumberFormatException exception) {
-                    return new ResponseObjectResult(false, 400, "Id wall type not valid", null);
+                    return ResponseFactory.badRequest("Id wall type not valid");
                 }
             }
 
@@ -139,7 +145,7 @@ public class PlaceService {
                         posterTypeSet.add(pt);
                     }
                 } catch (NumberFormatException exception) {
-                    return new ResponseObjectResult(false, 400, "Id poster type not valid", null);
+                    return ResponseFactory.badRequest("Id poster type not valid");
                 }
 
             }
@@ -159,15 +165,16 @@ public class PlaceService {
             place.setHeight(requestBody.getHeight());
 
             Place savedPlace = repository.save(place);
-            return new ResponseObjectResult(true, 201, "New place created", savedPlace);
+            return ResponseFactory.created("New place created", savedPlace);
 
         } else {
-            return new ResponseObjectResult(false, 401, "User doesn't exist", null);
+            return ResponseFactory.authorizationError();
         }
 
     }
 
-    public ResponseObjectResult getPlaceDetailInformation(int idProvider, int idPlace) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> getPlaceDetailInformation(int idProvider, int idPlace) {
         Optional<User> optionalProvider = providerRepository.findById(idProvider);
         Optional<Place> optionalPlace = repository.findById(idPlace);
         if (optionalProvider.isPresent()) {
@@ -176,23 +183,27 @@ public class PlaceService {
                 Place place = optionalPlace.get();
 
                 if (place.getUser().getId() == user.getId()) {
-                    return new ResponseObjectResult(true, 200, "Get place information success", place);
+
+                    List<Image> images = imageRepository.getImages("place", place.getId());
+                    place.setAdditionalImages(images);
+                    return ResponseFactory.ok("Get place information success", place);
                 } else {
-                    return new ResponseObjectResult(false, 401, "Unauthorised", null);
+                    return ResponseFactory.authorizationError();
                 }
             } else {
-                return new ResponseObjectResult(false, 401, "Place doesn't exist", null);
+                return ResponseFactory.badRequest("Place doesn't exist");
             }
         } else {
-            return new ResponseObjectResult(false, 401, "User doesn't exist", null);
+            return ResponseFactory.authorizationError();
         }
 
     }
 
-    public ResponseObjectResult searchPlace(int idUser, SearchRequestModel requestModel) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> searchPlace(int idUser, SearchRequestModel requestModel) {
         User user = checkUser(idUser);
         if (user == null) {
-            return new ResponseObjectResult(false, 401, "User doesn't exist", null);
+            return ResponseFactory.authorizationError();
         } else {
 
             List<PlaceSearch> list = repository.searchPlace(requestModel.getLat(),
@@ -206,58 +217,61 @@ public class PlaceService {
                     requestModel.getMaxPrice(),
                     requestModel.getIdWall(),
                     requestModel.getIdPoster());
-            return new ResponseObjectResult(true, 200, ((list == null) ? 0 : list.size()) + " result", list);
+            return ResponseFactory.ok(((list == null) ? 0 : list.size()) + " result", list);
         }
     }
 
-    public ResponseObjectResult getFavoritePlace(int idCustomer) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> getFavoritePlace(int idCustomer) {
         List<Place> places = repository.getFavoritePlace(idCustomer);
-        return new ResponseObjectResult(true, 200, ((places == null) ? 0 : places.size()) + "results", places);
+        return ResponseFactory.ok(((places == null) ? 0 : places.size()) + "results", places);
     }
 
-    public ResponseObjectResult addPlaceToFavoriteList(User user, int idPlace) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> addPlaceToFavoriteList(User user, int idPlace) {
         Set<Place> places = user.getFavoritePlaces();
         Place place = repository.findById(idPlace).orElse(null);
         if (place == null) {
-            return new ResponseObjectResult(false, 400, "ID place not exist", null);
+            return ResponseFactory.badRequest("ID place not exist");
         } else {
 
             if (places.contains(place)) {
-                return new ResponseObjectResult(false, 400, "This place with id " + idPlace + " is already exist in favorite list", null);
+                return ResponseFactory.badRequest("This place with id " + idPlace + " is already exist in favorite list");
 
             } else {
                 places.add(place);
                 user.setFavoritePlaces(places);
                 providerRepository.save(user);
-                return new ResponseObjectResult(true, 201, "Success", null);
+                return ResponseFactory.created("Success", null);
             }
 
         }
     }
 
-
-    public ResponseObjectResult removePlaceFromFavoriteList(User user, int idPlace) {
+    @Override
+    public ResponseEntity<ResponseObjectResult> removePlaceFromFavoriteList(User user, int idPlace) {
         Set<Place> places = user.getFavoritePlaces();
         Place place = repository.findById(idPlace).orElse(null);
         if (place == null) {
-            return new ResponseObjectResult(false, 400, "ID place not exist", null);
+            return ResponseFactory.badRequest("ID place not exist");
         } else {
 
             if (!places.contains(place)) {
-                return new ResponseObjectResult(false, 400, "This place with id " + idPlace + " have not been exist in favorite list", null);
+                return ResponseFactory.badRequest("This place with id " + idPlace + " have not been exist in favorite list");
 
             } else {
                 places.remove(place);
                 user.setFavoritePlaces(places);
                 providerRepository.save(user);
-                return new ResponseObjectResult(true, 201, "Success", null);
+                return ResponseFactory.created("Success", null);
             }
 
         }
     }
 
-    public ResponseObjectResult getLatestPlace() {
+    @Override
+    public ResponseEntity<ResponseObjectResult> getLatestPlace() {
         List<Place> places = repository.getNewCreatePlace();
-        return new ResponseObjectResult(true, 200, ((places == null) ? 0 : places.size()) + " results", places);
+        return ResponseFactory.ok(((places == null) ? 0 : places.size()) + " results", places);
     }
 }

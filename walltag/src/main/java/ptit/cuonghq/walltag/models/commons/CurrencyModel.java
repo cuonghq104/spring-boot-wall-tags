@@ -1,4 +1,4 @@
-package ptit.cuonghq.walltag.models;
+package ptit.cuonghq.walltag.models.commons;
 
 import ptit.cuonghq.walltag.utils.Validate;
 

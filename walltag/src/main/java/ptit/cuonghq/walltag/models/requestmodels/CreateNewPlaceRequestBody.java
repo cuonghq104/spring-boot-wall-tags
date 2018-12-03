@@ -82,7 +82,7 @@ public class CreateNewPlaceRequestBody {
         return posterTypes;
     }
 
-    public void setPosterType(String posterTypes) {
+    public void setPosterTypes(String posterTypes) {
         this.posterTypes = posterTypes;
     }
 

@@ -1,6 +1,6 @@
 package ptit.cuonghq.walltag.models.responsemodels;
 
-import ptit.cuonghq.walltag.models.CurrencyModel;
+import ptit.cuonghq.walltag.models.commons.CurrencyModel;
 
 public class ContractSummary {
 
