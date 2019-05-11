@@ -4,7 +4,7 @@ public class RegisterRequestBody {
 
     private String password;
 
-    private String emailOrPhone;
+    private String phoneOrEmail;
 
     public String getPassword() {
         return password;
@@ -14,12 +14,12 @@ public class RegisterRequestBody {
         this.password = password;
     }
 
-    public String getEmailOrPhone() {
-        return emailOrPhone;
+    public String getPhoneOrEmail() {
+        return phoneOrEmail;
     }
 
-    public void setEmailOrPhone(String emailOrPhone) {
-        this.emailOrPhone = emailOrPhone;
+    public void setPhoneOrEmail(String phoneOrEmail) {
+        this.phoneOrEmail = phoneOrEmail;
     }
 
 }

@@ -28,16 +28,16 @@ public class ProviderService implements UserServiceInterface {
 
     @Override
     public ResponseEntity<ResponseObjectResult> register(RegisterRequestBody requestBody, String role) {
-        String emailOrPhone = requestBody.getEmailOrPhone();
-        boolean isEmailAddress =  Validate.isValidatedEmail(emailOrPhone);
+        String phoneOrEmail = requestBody.getPhoneOrEmail();
+        boolean isEmailAddress =  Validate.isValidatedEmail(phoneOrEmail);
 
         if (isEmailAddress) {
-            User user = repository.findUserByEmail(emailOrPhone);
+            User user = repository.findUserByEmail(phoneOrEmail);
             if (user != null) {
                 return ResponseFactory.badRequest("This email is already registered with another account");
             }
         } else {
-            User user = repository.findUserByPhone(emailOrPhone);
+            User user = repository.findUserByPhone(phoneOrEmail);
             if (user != null) {
                 return ResponseFactory.badRequest("This phone is already registered with another account");
             }
@@ -49,9 +49,9 @@ public class ProviderService implements UserServiceInterface {
             tmp.setRole(role);
             tmp.setPassword(requestBody.getPassword());
             if (isEmailAddress) {
-                tmp.setEmail(emailOrPhone);
+                tmp.setEmail(phoneOrEmail);
             } else {
-                tmp.setPhone(emailOrPhone);
+                tmp.setPhone(phoneOrEmail);
             }
             user = repository.save(tmp);
         } catch (ConstraintViolationException ex) {
