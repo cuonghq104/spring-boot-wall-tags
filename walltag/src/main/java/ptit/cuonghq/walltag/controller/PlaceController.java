@@ -78,8 +78,8 @@ public class PlaceController {
                                                             @RequestParam("max_height") Optional<Integer> maxHeight,
                                                             @RequestParam("min_price") Optional<Integer> minPrice,
                                                             @RequestParam("max_price") Optional<Integer> maxPrice,
-                                                            @RequestParam("id_poster") String idPoster,
-                                                            @RequestParam("id_wall") String idWall) {
+                                                            @RequestParam("id_poster") Optional<String> idPoster,
+                                                            @RequestParam("id_wall") Optional<String> idWall) {
         SearchRequestModel requestModel = new SearchRequestModel();
         requestModel.setLat(lat.orElse(0.0));
         requestModel.setLng(lng.orElse(0.0));
@@ -89,9 +89,9 @@ public class PlaceController {
         requestModel.setMinHeight(minHeight.orElse(0));
         requestModel.setMaxHeight(maxHeight.orElse(1000));
         requestModel.setMinPrice(minPrice.orElse(0));
-        requestModel.setMaxPrice(maxPrice.orElse(2000000));
-        requestModel.setIdPoster(idPoster);
-        requestModel.setIdWall(idWall);
+        requestModel.setMaxPrice(maxPrice.orElse(10000000));
+        requestModel.setIdPoster(idPoster.orElse("10000,100001,10002"));
+        requestModel.setIdWall(idWall.orElse("10000,100001,10002"));
 
         return service.searchPlace(idUser, requestModel);
     }
