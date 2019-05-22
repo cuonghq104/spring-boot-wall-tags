@@ -36,7 +36,7 @@ public class ContractController {
     @PostMapping
     @ApiOperation(value = "Create new contract")
     private ResponseEntity<ResponseObjectResult> createNewContract(@RequestHeader("Authorization") int idUser, @RequestBody CreateNewContractRB requestBody) {
-        User user = authService.checkProvider(idUser);
+        User user = authService.checkCustomer(idUser);
         if (user == null) {
             return ResponseFactory.authorizationError();
         }

@@ -206,7 +206,8 @@ public class PlaceService implements PlaceServiceInterface {
             return ResponseFactory.authorizationError();
         } else {
 
-            List<PlaceSearch> list = repository.searchPlace(requestModel.getLat(),
+            List<PlaceSearch> list = repository.searchPlace(
+                    requestModel.getLat(),
                     requestModel.getLng(),
                     requestModel.getDistance(),
                     requestModel.getMinWidth(),
