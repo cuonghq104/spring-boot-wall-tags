@@ -69,8 +69,8 @@ public class PlaceController {
     @GetMapping(Const.Path.Place.SEARCH)
     @ApiOperation(value = "Tìm kiếm địa điểm")
     public ResponseEntity<ResponseObjectResult> searchPlace(@RequestHeader("Authorization")int idUser,
-                                                            @RequestParam("lat") double lat,
-                                                            @RequestParam("lng") double lng,
+                                                            @RequestParam("lat") Optional<Double> lat,
+                                                            @RequestParam("lng") Optional<Double> lng,
                                                             @RequestParam("distance") Optional<Double> distance,
                                                             @RequestParam("min_width") Optional<Integer> minWidth,
                                                             @RequestParam("max_width") Optional<Integer> maxWidth,
@@ -81,8 +81,8 @@ public class PlaceController {
                                                             @RequestParam("id_poster") String idPoster,
                                                             @RequestParam("id_wall") String idWall) {
         SearchRequestModel requestModel = new SearchRequestModel();
-        requestModel.setLat(lat);
-        requestModel.setLng(lng);
+        requestModel.setLat(lat.orElse(0.0));
+        requestModel.setLng(lng.orElse(0.0));
         requestModel.setDistance(distance.orElse(2.0));
         requestModel.setMinWidth(minWidth.orElse(0));
         requestModel.setMaxWidth(maxWidth.orElse(1000));
